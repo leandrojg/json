@@ -1,0 +1,93 @@
+---
+---
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Visor de JSON con Astro</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      textarea {
+        width: 100%;
+        font-family: monospace;
+        margin-bottom: 10px;
+      }
+      .node {
+        margin-left: 20px;
+        padding: 2px;
+      }
+      .key {
+        font-weight: bold;
+        color: #2c3e50;
+      }
+      .value {
+        color: #16a085;
+      }
+      .collapsible {
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Visor de JSON</h1>
+    <textarea id="jsonInput" rows="10" placeholder="Ingresa el JSON aquí"></textarea>
+    <br />
+    <button id="parseButton">Visualizar JSON</button>
+    <div id="output"></div>
+
+    <script>
+      // Función recursiva para generar el árbol visual del JSON
+      function createTree(key, value) {
+        const container = document.createElement('div');
+        container.className = 'node';
+        if (typeof value === 'object' && value !== null) {
+          const header = document.createElement('div');
+          header.className = 'collapsible';
+          header.innerHTML = `<span class="key">${key}</span>: ${Array.isArray(value) ? '[ ]' : '{ }'}`;
+          header.addEventListener('click', function () {
+            const childNodes = container.querySelectorAll(':scope > .children');
+            childNodes.forEach(child => {
+              child.style.display = (child.style.display === 'none') ? 'block' : 'none';
+            });
+          });
+          container.appendChild(header);
+
+          const childrenContainer = document.createElement('div');
+          childrenContainer.className = 'children';
+          childrenContainer.style.display = 'block';
+          for (const prop in value) {
+            const childNode = createTree(prop, value[prop]);
+            childrenContainer.appendChild(childNode);
+          }
+          container.appendChild(childrenContainer);
+        } else {
+          container.innerHTML = `<span class="key">${key}</span>: <span class="value">${value}</span>`;
+        }
+        return container;
+      }
+
+      // Manejo del botón para parsear y visualizar el JSON
+      document.getElementById('parseButton').addEventListener('click', function () {
+        const input = document.getElementById('jsonInput').value;
+        let jsonData;
+        try {
+          jsonData = JSON.parse(input);
+        } catch (e) {
+          alert('El JSON ingresado no es válido. Por favor, revisa la sintaxis.');
+          return;
+        }
+        const output = document.getElementById('output');
+        output.innerHTML = '';
+        if (typeof jsonData === 'object' && jsonData !== null) {
+          const tree = createTree('root', jsonData);
+          output.appendChild(tree);
+        } else {
+          output.innerHTML = `<span class="value">${jsonData}</span>`;
+        }
+      });
+    </script>
+  </body>
+</html>
